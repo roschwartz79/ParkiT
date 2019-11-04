@@ -28,12 +28,13 @@
 //New Servo and LiDAR distance objects
 Servo servo;
 SoftwareSerial mySerial = SoftwareSerial(12, 13); // RX, TX
-//SoftwareSerial bleSerial = SoftwareSerial(9, 10);
 DFRobot_TFmini  TFmini;
 int distance, strength;
 
 //Scan from 30 to 151 degrees
 int pos = 30;
+
+int distanceData[121];
 
 // Create the bluefruit object, either software serial...uncomment these lines
 
@@ -42,7 +43,6 @@ SoftwareSerial bluefruitSS = SoftwareSerial(BLUEFRUIT_SWUART_TXD_PIN, BLUEFRUIT_
 Adafruit_BluefruitLE_UART ble(bluefruitSS, BLUEFRUIT_UART_MODE_PIN,
                               BLUEFRUIT_UART_CTS_PIN, BLUEFRUIT_UART_RTS_PIN);
 
-int *distanceData = (int *) malloc( 121 * sizeof(int) );
 int delayTime;
 
 // A small helper
@@ -54,7 +54,7 @@ void error(const __FlashStringHelper*err) {
 //setup loop
 void setup() {
   Serial.begin(115200);
-  bluefruitSS.begin(115200);
+  //bluefruitSS.begin(115200);
 
   Serial.println(F("Starting up Bluetooth...."));
   Serial.println(F("---------------------------------------"));
@@ -62,10 +62,10 @@ void setup() {
   /* Initialise the module */
   Serial.print(F("Initializing the Bluefruit LE module: "));
 
-  //if ( !ble.begin(VERBOSE_MODE) )
-  //{
-    //error(F("Couldn't find Bluefruit, make sure it's in Command mode & check wiring?"));
-  //}
+  if ( !ble.begin(VERBOSE_MODE) )
+  {
+      error(F("Couldn't find Bluefruit, make sure it's in Command mode & check wiring?"));
+  }
   Serial.println( F("Bluetooth Found!") );
 
   /* Disable command echo from Bluefruit */
@@ -96,8 +96,7 @@ void setup() {
   delayTime = 0;
 
   //set up the LiDAR sensor
-  TFmini.begin(mySerial);
-  //TFmini.begin(115200);
+  //TFmini.begin(mySerial);
 
   //setup ble 
 
