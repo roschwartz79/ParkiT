@@ -109,6 +109,7 @@ void setup() {
 void loop() {
   // Check for incoming characters from Bluefruit every iteration if the ble is connected
   /* Wait for connection or capture data every 5 mins */
+  //listen to the bluefruit now 
   bluefruitSS.listen();
   while (!bluefruitSS.isListening()){
     Serial.println("Waiting for ble to listen");
@@ -147,6 +148,7 @@ void loop() {
 //INPUTS: NONE
 //OUTPUTS: NONE
 void captureData() {
+  //listen to the lidar now
   mySerial.listen();
   while (!mySerial.isListening()){
     Serial.println("Waiting for TFmini to listen");
