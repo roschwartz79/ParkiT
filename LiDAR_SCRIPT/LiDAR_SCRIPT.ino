@@ -54,7 +54,6 @@ void error(const __FlashStringHelper*err) {
 //setup loop
 void setup() {
   Serial.begin(115200);
-  //bluefruitSS.begin(115200);
 
   Serial.println(F("Starting up Bluetooth...."));
   Serial.println(F("---------------------------------------"));
@@ -64,7 +63,7 @@ void setup() {
 
   if ( !ble.begin(VERBOSE_MODE) )
   {
-      error(F("Couldn't find Bluefruit, make sure it's in Command mode & check wiring?"));
+    error(F("Couldn't find Bluefruit, make sure it's in Command mode & check wiring?"));
   }
   Serial.println( F("Bluetooth Found!") );
 
@@ -93,12 +92,12 @@ void setup() {
   servo.writeMicroseconds(1500);
   delay(100);
 
-  delayTime = 0;
+  delayTime = 270;
 
   //set up the LiDAR sensor
-  //TFmini.begin(mySerial);
+  TFmini.begin(mySerial);
 
-  //setup ble 
+  //setup ble
 
   for (int i = 0; i < 121; i++) {
     distanceData[i] = i;
@@ -109,11 +108,11 @@ void setup() {
 void loop() {
   // Check for incoming characters from Bluefruit every iteration if the ble is connected
   /* Wait for connection or capture data every 5 mins */
-  //listen to the bluefruit now 
   bluefruitSS.listen();
-  while (!bluefruitSS.isListening()){
+  while (!bluefruitSS.isListening()) {
     Serial.println("Waiting for ble to listen");
   }
+  bluefruitSS.read();
   if (ble.isConnected()) {
     // Check for incoming characters from Bluefruit
     ble.println("AT+BLEUARTRX");
@@ -148,14 +147,35 @@ void loop() {
 //INPUTS: NONE
 //OUTPUTS: NONE
 void captureData() {
-  //listen to the lidar now
-  mySerial.listen();
-  while (!mySerial.isListening()){
-    Serial.println("Waiting for TFmini to listen");
-  }
   //loop through each angle and take measurements at each angle
   for (pos = 30; pos <= 151; pos += 1) { // goes from 0 degrees to 180 degrees
     // in steps of 1 degree
+
+    //check if the central hub is requesting data
+    bluefruitSS.listen();
+    while (!bluefruitSS.isListening()) {
+      Serial.println("Waiting for ble to listen");
+    }
+    bluefruitSS.read();
+    if (ble.isConnected()) {
+      // Check for incoming characters from Bluefruit
+      ble.println("AT+BLEUARTRX");
+      ble.readline();
+      if (strcmp(ble.buffer, "OK") == 0) {
+        // no data
+      }
+      else if (strcmp(ble.buffer, "START") == 0) {
+        Serial.println("Sending Data!");
+        bluetoothSend();
+      }
+    }
+
+    //activate the LiDAR serial ports
+    mySerial.listen();
+    while (!mySerial.isListening()) {
+      Serial.println("Waiting for TFmini to listen");
+    }
+    mySerial.read();
     servo.write(pos);              // tell servo to go to position in variable 'pos'
     delay(15);                       // waits 15ms for the servo to reach the position
     Serial.println("Rotating...");
@@ -190,86 +210,88 @@ void captureData() {
 
 //------------------------------------------------------------------------------------------------------------//
 //bluetoothSend(int) method
-//INPUTS: The distance measurement
+//INPUTS: None
 //OUTPUTS: None
 // Send data to Bluefruit
 void bluetoothSend() {
-  String compressedData1 = "";
-  String compressedData2 = "";
-  String compressedData3 = "";
-  String compressedData4 = "";
-  String compressedData5 = "";
-
-
+  String compressedData = "";
 
   for (int i = 0; i < 30; i++) {
-    compressedData1.concat(i + 30);
-    compressedData1.concat(",");
-    compressedData1.concat(distanceData[i]);
-    compressedData1.concat(";");
+    compressedData.concat(i + 30);
+    compressedData.concat(",");
+    compressedData.concat(distanceData[i]);
+    compressedData.concat(";");
   }
+  ble.print("AT+BLEUARTTX=");
+  ble.println(compressedData);
+  ble.println("");
+  delay(50);
+  compressedData = "";
 
   for (int i = 30; i < 60; i++) {
-    compressedData2.concat(i + 30);
-    compressedData2.concat(",");
-    compressedData2.concat(distanceData[i]);
-    compressedData2.concat(";");
+    compressedData.concat(i + 30);
+    compressedData.concat(",");
+    compressedData.concat(distanceData[i]);
+    compressedData.concat(";");
   }
+  ble.print("AT+BLEUARTTX=");
+  ble.println(compressedData);
+  ble.println("");
+  delay(50);
+  compressedData = "";
 
-for (int i = 60; i < 90; i++) {
-    compressedData3.concat(i + 30);
-    compressedData3.concat(",");
-    compressedData3.concat(distanceData[i]);
-    compressedData3.concat(";");
+  for (int i = 60; i < 90; i++) {
+    compressedData.concat(i + 30);
+    compressedData.concat(",");
+    compressedData.concat(distanceData[i]);
+    compressedData.concat(";");
   }
-for (int i = 90; i < 115; i++) {
-    compressedData4.concat(i + 30);
-    compressedData4.concat(",");
-    compressedData4.concat(distanceData[i]);
-    compressedData4.concat(";");
-  }    
-for (int i = 115; i < 121; i++) {
-    compressedData5.concat(i + 30);
-    compressedData5.concat(",");
-    compressedData5.concat(distanceData[i]);
-    compressedData5.concat(";");
-  }  
+  ble.print("AT+BLEUARTTX=");
+  ble.println(compressedData);
+  ble.println("");
+  delay(50);
+  compressedData = "";
 
+  for (int i = 90; i < 100; i++) {
+    compressedData.concat(i + 30);
+    compressedData.concat(",");
+    compressedData.concat(distanceData[i]);
+    compressedData.concat(";");
+  }
   ble.print("AT+BLEUARTTX=");
-  ble.println(compressedData1);
+  ble.println(compressedData);
   ble.println("");
-  delay(100);
+  delay(50);
+  compressedData = "";
+
+  for (int i = 100; i < 110; i++) {
+    compressedData.concat(i + 30);
+    compressedData.concat(",");
+    compressedData.concat(distanceData[i]);
+    compressedData.concat(";");
+  }
   ble.print("AT+BLEUARTTX=");
-  ble.println(compressedData2);
+  ble.println(compressedData);
   ble.println("");
-  delay(100);
-  ble.print("AT+BLEUARTTX=");  
-  ble.println(compressedData3);
+  delay(50);
+  compressedData = "";
+
+  delay(50);
+  for (int i = 110; i < 121; i++) {
+    compressedData.concat(i + 30);
+    compressedData.concat(",");
+    compressedData.concat(distanceData[i]);
+    compressedData.concat(";");
+  }
+  ble.print("AT+BLEUARTTX=");
+  ble.println(compressedData);
   ble.println("");
-  delay(100);
-  ble.print("AT+BLEUARTTX=");  
-  ble.println(compressedData4);
-  ble.println("");
-  delay(100);
-  ble.print("AT+BLEUARTTX=");  
-  ble.println(compressedData5);
-  ble.println("");
-  delay(100);
-  ble.print("AT+BLEUARTTX=");  
-  ble.println("144");
+  delay(50);
 
   // check response stastus
   if (! ble.waitForOK() ) {
     Serial.println(F("Failed to send!t"));
   }
 }
-
-//------------------------------------------------------------------------------------------------------------//
-
-
-//------------------------------------------------------------------------------------------------------------//
-//bluetoothReceive() method
-//INPUTS:
-//OUTPUTS:
 
 //------------------------------------------------------------------------------------------------------------//
