@@ -203,6 +203,12 @@ void captureData() {
     servo.write(pos);              // tell servo to go to position in variable 'pos'
     delay(30);                       // waits 15ms for the servo to reach the position
   }
+
+  bluefruitSS.listen();
+  while (!bluefruitSS.isListening()) {
+    Serial.println("Waiting for ble to listen");
+  }
+  bluefruitSS.read();
 }
 
 //------------------------------------------------------------------------------------------------------------//
