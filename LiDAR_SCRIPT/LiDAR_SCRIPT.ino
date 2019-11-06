@@ -1,12 +1,10 @@
 /*
   ParkIT peripheral sensor script - ECE SENIOR DESIGN PROJECT
   DESIGNED BY: ROB SCHWARTZ, SAM PETERSON, BEN HARRIS, JUSTIN ANDERSON, PARKER MAY
-
   METHODS INCLUDED IN THIS FILE
   setup()
   loop()
   captureData()
-
 */
 
 #include <DFRobot_TFmini.h>
@@ -203,12 +201,6 @@ void captureData() {
     servo.write(pos);              // tell servo to go to position in variable 'pos'
     delay(30);                       // waits 15ms for the servo to reach the position
   }
-
-  bluefruitSS.listen();
-  while (!bluefruitSS.isListening()) {
-    Serial.println("Waiting for ble to listen");
-  }
-  bluefruitSS.read();
 }
 
 //------------------------------------------------------------------------------------------------------------//
