@@ -25,7 +25,7 @@
 
 //New Servo and LiDAR distance objects
 Servo servo;
-SoftwareSerial mySerial = SoftwareSerial(12, 13); // RX, TX
+SoftwareSerial mySerial = SoftwareSerial(5, 6); // RX, TX
 DFRobot_TFmini  TFmini;
 int distance, strength;
 
@@ -85,7 +85,7 @@ void setup() {
   }
 
   //servo control on pin 8
-  servo.attach(8);
+  servo.attach(9);
   //output the angle to control the servo at on startup
   servo.writeMicroseconds(1500);
   delay(100);
