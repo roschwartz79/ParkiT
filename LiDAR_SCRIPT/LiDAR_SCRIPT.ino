@@ -32,6 +32,10 @@ int distance, strength;
 //Scan from 30 to 151 degrees
 int pos = 30;
 
+//Servo Control variables
+int powerControl = 2;
+int servoPin = 9;
+
 int distanceData[121];
 
 // Create the bluefruit object, either software serial...uncomment these lines
@@ -61,7 +65,7 @@ void setup() {
 
   if ( !ble.begin(VERBOSE_MODE) )
   {
-     error(F("Couldn't find Bluefruit, make sure it's in Command mode & check wiring?"));
+    error(F("Couldn't find Bluefruit, make sure it's in Command mode & check wiring?"));
   }
   Serial.println( F("Bluetooth Found!") );
 
@@ -86,13 +90,13 @@ void setup() {
 
 
   //output the angle to control the servo at on startup
-//  Serial.flush ();   // wait for send buffer to empty
-//  delay (2);    // let last character be sent
-//  Serial.end ();      // close serial
-//  servo.attach(9);
-//  servo.writeMicroseconds(1500);
-//  servo.detach();
-//  delay(100);
+  //  Serial.flush ();   // wait for send buffer to empty
+  //  delay (2);    // let last character be sent
+  //  Serial.end ();      // close serial
+  //  servo.attach(9);
+  //  servo.writeMicroseconds(1500);
+  //  servo.detach();
+  //  delay(100);
 
   delayTime = 290;
 
@@ -112,7 +116,7 @@ void loop() {
   /* Wait for connection or capture data every 5 mins */
   bluefruitSS.listen();
   //while (!bluefruitSS.isListening()) {
-    //Serial.println("Waiting for ble to listen");
+  //Serial.println("Waiting for ble to listen");
   //}
   bluefruitSS.read();
   if (ble.isConnected()) {
@@ -149,68 +153,13 @@ void loop() {
 //INPUTS: NONE
 //OUTPUTS: NONE
 void captureData() {//loop through each angle and take measurements at each angle
-//  for (pos = 30; pos <= 151; pos += 1) { // goes from 0 degrees to 180 degrees
-//    // in steps of 1 degree
-//
-//    //check if the central hub is requesting data
-//    bluefruitSS.listen();
-//    while (!bluefruitSS.isListening()) {
-//      Serial.println("Waiting for ble to listen");
-//    }
-//    bluefruitSS.read();
-//    if (ble.isConnected()) {
-//      // Check for incoming characters from Bluefruit
-//      ble.println("AT+BLEUARTRX");
-//      ble.readline();
-//      if (strcmp(ble.buffer, "OK") == 0) {
-//        // no data
-//      }
-//      else if (strcmp(ble.buffer, "START") == 0) {
-//        Serial.println("Sending Data!");
-//        bluetoothSend();
-//      }
-//    }
-//
-//    //activate the LiDAR serial ports
-//    mySerial.listen();
-//    while (!mySerial.isListening()) {
-//      Serial.println("Waiting for TFmini to listen");
-//    }
-//    mySerial.read();
-//    delay(100);
-//    servo.attach(9);
-//    servo.write(pos);
-//    Serial.println(servo.read());
-//    servo.detach();
-//    // tell servo to go to position in variable 'pos'
-//    delay(100);                       // waits 15ms for the servo to reach the position
-//    
-//    if (TFmini.measure()) {                    //Measure Distance and get signal strength
-//      distance = TFmini.getDistance();       //Get distance data
-//      strength = TFmini.getStrength();       //Get signal strength data
-//
-//      //store distance data in array
-//      distanceData[pos - 30] = distance;
-//
-//      //For Debugging/console printing
-//      Serial.print("Angle: ");
-//      Serial.println(pos);
-//      Serial.print("Distance = ");
-//      Serial.print(distance);
-//      Serial.println("cm");
-//      Serial.print("Strength = ");
-//      Serial.println(strength);
-//    }
-//    else {
-//      distanceData[pos - 30] = -1;
-//    }
-//    delay(500);
-//  }
 
-    
 
-  servo.attach(9);
-  for (pos = 30; pos <=150; pos += 1) { // goes from 0 degrees to 180 degrees
+  servo.attach(servoPin);
+  // turn on servo power
+  digitalWrite(powerControl, HIGH);
+  Serial.println("Servo Power is ON");
+  for (pos = 30; pos <= 150; pos += 1) { // goes from 0 degrees to 180 degrees
     // in steps of 1 degree
 
     servo.write(pos);              // tell servo to go to position in variable 'pos'
@@ -237,7 +186,7 @@ void captureData() {//loop through each angle and take measurements at each angl
       Serial.print("Strength = ");
       Serial.println(strength);
     }
-    delay(100);
+    delay(80);
   }
   delay(1000);
   for (pos = 151; pos >= 30; pos -= 1) { // goes from 0 degrees to 180 degrees
@@ -245,6 +194,9 @@ void captureData() {//loop through each angle and take measurements at each angl
     servo.write(pos);              // tell servo to go to position in variable 'pos'
     delay(30);                       // waits 15ms for the servo to reach the position
   }
+  //turn off servo power
+  digitalWrite(powerControl, LOW);
+  Serial.println("Servo power is OFF");
   servo.detach();
 }
 
