@@ -57,6 +57,9 @@ void error(const __FlashStringHelper*err) {
 void setup() {
   Serial.begin(115200);
 
+  //set up pinmode
+  pinMode(2, OUTPUT);
+
   Serial.println(F("Starting up Bluetooth...."));
   Serial.println(F("---------------------------------------"));
 
