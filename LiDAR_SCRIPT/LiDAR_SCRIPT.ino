@@ -116,9 +116,9 @@ void loop() {
     // Check for incoming characters from Bluefruit
     ble.println("AT+BLEUARTRX");
     ble.readline();
-    //if (strcmp(ble.buffer, "OK") == 0) {
+    if (strcmp(ble.buffer, "OK") == 0) {
       // no data
-    //}
+    }
     if (strcmp(ble.buffer, "START") == 0) {
       ble.print("AT+BLEUARTTX=");
       ble.println("ok");
