@@ -90,17 +90,7 @@ void setup() {
     Serial.println(F("Change LED activity to " MODE_LED_BEHAVIOUR));
     ble.sendCommandCheckOK("AT+HWModeLED=" MODE_LED_BEHAVIOUR);
   }
-
-
-  //output the angle to control the servo at on startup
-  //  Serial.flush ();   // wait for send buffer to empty
-  //  delay (2);    // let last character be sent
-  //  Serial.end ();      // close serial
-  //  servo.attach(9);
-  //  servo.writeMicroseconds(1500);
-  //  servo.detach();
-  //  delay(100);
-
+  
   delayTime = 290;
 
   //set up the LiDAR sensor
@@ -126,29 +116,42 @@ void loop() {
     // Check for incoming characters from Bluefruit
     ble.println("AT+BLEUARTRX");
     ble.readline();
-    if (strcmp(ble.buffer, "OK") == 0) {
+    //if (strcmp(ble.buffer, "OK") == 0) {
       // no data
-    }
-    else if (strcmp(ble.buffer, "START") == 0) {
+    //}
+    if (strcmp(ble.buffer, "START") == 0) {
+      ble.print("AT+BLEUARTTX=");
+      ble.println("ok");
       Serial.println("Sending Data!");
       bluetoothSend();
+      ble.println("AT+BLEUARTRX");
+      ble.readline();
+
+    }
+    else if (strcmp(ble.buffer, "DATA") == 0) {
+      ble.print("AT+BLEUARTTX=");
+      ble.println("ok");
+      Serial.println("Collecting Data!");
+      captureData();
+      ble.println("AT+BLEUARTRX");
+      ble.readline();
     }
   }
 
-  //Do we want to capture new data
-  if (delayTime  == 300) {
-    //capture the new data
-    captureData();
-
-    //delay 4.95 minutes -> reset the servo angle to 30 degrees, start the program up again after 5 minutes
-    delayTime = 0;
-    servo.write(30);
-  }
-
-  //if we aren't capturing new data, increase delay
-  delayTime += 1;
-  delay(1000);
-  Serial.println(delayTime);
+//  //Do we want to capture new data
+//  if (delayTime  == 300) {
+//    //capture the new data
+//    captureData();
+//
+//    //delay 4.95 minutes -> reset the servo angle to 30 degrees, start the program up again after 5 minutes
+//    delayTime = 0;
+//    servo.write(30);
+//  }
+//
+//  //if we aren't capturing new data, increase delay
+//  delayTime += 1;
+//  delay(200);
+//  Serial.println(delayTime);
 }
 
 //------------------------------------------------------------------------------------------------------------//
@@ -166,13 +169,14 @@ void captureData() {//loop through each angle and take measurements at each angl
     // in steps of 1 degree
 
     servo.write(pos);              // tell servo to go to position in variable 'pos'
-    delay(30);
+    delay(10);
     mySerial.listen();
     while (!mySerial.isListening()) {
       Serial.println("Waiting for TFmini to listen");
     }
     mySerial.read();
     // waits 15ms for the servo to reach the position
+    delay(10);
     if (TFmini.measure()) {                    //Measure Distance and get signal strength
       distance = TFmini.getDistance();       //Get distance data
       strength = TFmini.getStrength();       //Get signal strength data
@@ -189,9 +193,9 @@ void captureData() {//loop through each angle and take measurements at each angl
       Serial.print("Strength = ");
       Serial.println(strength);
     }
-    delay(80);
+    delay(10);
   }
-  delay(1000);
+  delay(500);
   for (pos = 151; pos >= 30; pos -= 1) { // goes from 0 degrees to 180 degrees
     // in steps of 1 degree
     servo.write(pos);              // tell servo to go to position in variable 'pos'
@@ -286,10 +290,13 @@ void bluetoothSend() {
   ble.println("");
   delay(50);
 
+  ble.println("AT+BLEUARTRX");
+  ble.readline();
+
   // check response stastus
-  if (! ble.waitForOK() ) {
-    Serial.println(F("Failed to send!t"));
-  }
+  //if (! ble.waitForOK() ) {
+    //Serial.println(F("Failed to send!t"));
+  //}
 }
 
 //------------------------------------------------------------------------------------------------------------//
