@@ -36,7 +36,7 @@ int pos = 30;
 int powerControl = 2;
 int servoPin = 9;
 
-int distanceData[121];
+int distanceData[122];
 
 // Create the bluefruit object, either software serial...uncomment these lines
 
@@ -98,7 +98,7 @@ void setup() {
 
   //setup ble
 
-  for (int i = 0; i < 121; i++) {
+  for (int i = 0; i <= 121; i++) {
     distanceData[i] = -1;
   }
 }
@@ -161,22 +161,23 @@ void loop() {
 void captureData() {//loop through each angle and take measurements at each angle
 
 
-  servo.attach(servoPin);
   // turn on servo power
   digitalWrite(powerControl, HIGH);
   Serial.println("Servo Power is ON");
-  for (pos = 30; pos <= 150; pos += 1) { // goes from 0 degrees to 180 degrees
+  for (pos = 30; pos <= 151; pos += 1) { // goes from 0 degrees to 180 degrees
     // in steps of 1 degree
+    servo.attach(servoPin);
 
     servo.write(pos);              // tell servo to go to position in variable 'pos'
-    delay(10);
+    //delay(10);
+    
     mySerial.listen();
     while (!mySerial.isListening()) {
       Serial.println("Waiting for TFmini to listen");
     }
     mySerial.read();
     // waits 15ms for the servo to reach the position
-    delay(10);
+    delay(15);
     if (TFmini.measure()) {                    //Measure Distance and get signal strength
       distance = TFmini.getDistance();       //Get distance data
       strength = TFmini.getStrength();       //Get signal strength data
@@ -193,13 +194,13 @@ void captureData() {//loop through each angle and take measurements at each angl
       Serial.print("Strength = ");
       Serial.println(strength);
     }
-    delay(10);
+    //delay(10);
   }
   delay(500);
   for (pos = 151; pos >= 30; pos -= 1) { // goes from 0 degrees to 180 degrees
     // in steps of 1 degree
     servo.write(pos);              // tell servo to go to position in variable 'pos'
-    delay(30);                       // waits 15ms for the servo to reach the position
+    delay(20);                       // waits 15ms for the servo to reach the position
   }
   //turn off servo power
   digitalWrite(powerControl, LOW);
