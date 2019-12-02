@@ -5,6 +5,7 @@
   setup()
   loop()
   captureData()
+  bluetoothSend()
 */
 
 #include <DFRobot_TFmini.h>
@@ -36,12 +37,13 @@ int pos = 30;
 int powerControl = 2;
 int servoPin = 9;
 
+//Array to store distance data in
 int distanceData[122];
 
-// Create the bluefruit object, either software serial...uncomment these lines
-
+// Create the bluefruit object
 SoftwareSerial bluefruitSS = SoftwareSerial(BLUEFRUIT_SWUART_TXD_PIN, BLUEFRUIT_SWUART_RXD_PIN);
 
+//Begin initialization of the bluefruit
 Adafruit_BluefruitLE_UART ble(bluefruitSS, BLUEFRUIT_UART_MODE_PIN,
                               BLUEFRUIT_UART_CTS_PIN, BLUEFRUIT_UART_RTS_PIN);
 
@@ -57,7 +59,7 @@ void error(const __FlashStringHelper*err) {
 void setup() {
   Serial.begin(115200);
 
-  //set up pinmode
+  //set up pinmode for power control through transistor
   pinMode(2, OUTPUT);
 
   Serial.println(F("Starting up Bluetooth...."));
@@ -79,6 +81,7 @@ void setup() {
   /* Print Bluefruit information */
   ble.info();
 
+  //for debugging
   Serial.println(F("Using the Adafruit Bluefruit LE app to connect in UART mode"));
 
   ble.verbose(false);  // debug info is a little annoying after this point!
@@ -90,7 +93,7 @@ void setup() {
     Serial.println(F("Change LED activity to " MODE_LED_BEHAVIOUR));
     ble.sendCommandCheckOK("AT+HWModeLED=" MODE_LED_BEHAVIOUR);
   }
-  
+
   delayTime = 290;
 
   //set up the LiDAR sensor
@@ -103,7 +106,7 @@ void setup() {
   }
 }
 
-//Do forever <3
+//Do forever until power is cut
 void loop() {
   // Check for incoming characters from Bluefruit every iteration if the ble is connected
   /* Wait for connection or capture data every 5 mins */
@@ -138,20 +141,7 @@ void loop() {
     }
   }
 
-//  //Do we want to capture new data
-//  if (delayTime  == 300) {
-//    //capture the new data
-//    captureData();
-//
-//    //delay 4.95 minutes -> reset the servo angle to 30 degrees, start the program up again after 5 minutes
-//    delayTime = 0;
-//    servo.write(30);
-//  }
-//
-//  //if we aren't capturing new data, increase delay
-//  delayTime += 1;
-//  delay(200);
-//  Serial.println(delayTime);
+
 }
 
 //------------------------------------------------------------------------------------------------------------//
@@ -170,7 +160,7 @@ void captureData() {//loop through each angle and take measurements at each angl
 
     servo.write(pos);              // tell servo to go to position in variable 'pos'
     //delay(10);
-    
+
     mySerial.listen();
     while (!mySerial.isListening()) {
       Serial.println("Waiting for TFmini to listen");
@@ -212,13 +202,15 @@ void captureData() {//loop through each angle and take measurements at each angl
 
 
 //------------------------------------------------------------------------------------------------------------//
-//bluetoothSend(int) method
+//bluetoothSend() method
 //INPUTS: None
 //OUTPUTS: None
 // Send data to Bluefruit
 void bluetoothSend() {
+  //string to send the data out on
   String compressedData = "";
 
+  //concat into proper form and send out
   for (int i = 0; i < 30; i++) {
     compressedData.concat(i + 30);
     compressedData.concat(",");
@@ -294,9 +286,10 @@ void bluetoothSend() {
   ble.println("AT+BLEUARTRX");
   ble.readline();
 
+  // for debugging
   // check response stastus
   //if (! ble.waitForOK() ) {
-    //Serial.println(F("Failed to send!t"));
+  //Serial.println(F("Failed to send!t"));
   //}
 }
 
